@@ -1,4 +1,4 @@
-package am.task.model.dto;
+package am.task.model.dto.user;
 
 import lombok.*;
 

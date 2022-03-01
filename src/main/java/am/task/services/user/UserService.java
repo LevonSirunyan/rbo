@@ -1,6 +1,6 @@
 package am.task.services.user;
 
-import am.task.model.dto.UserCreatingDto;
+import am.task.model.dto.user.UserCreatingDto;
 import am.task.model.entity.User;
 import am.task.services.CommonService;
 import org.springframework.security.core.userdetails.UserDetails;

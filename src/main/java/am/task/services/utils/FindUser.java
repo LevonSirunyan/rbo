@@ -13,19 +13,20 @@ import java.util.Optional;
 public class FindUser {
 
     @Lazy
-    private final UserRepository mUserRepository;
+    private final UserRepository userRepository;
 
     public FindUser(UserRepository userRepository) {
-        this.mUserRepository = userRepository;
+        this.userRepository = userRepository;
     }
 
     public User findUserByToken() throws EntityNotFoundException {
         Authentication authentication = AuthenticationUtil.getAuthentication();
-        Optional<User> optionalUser = mUserRepository.findByEmail(authentication.getName());
-        if (optionalUser.isEmpty()) {
-            throw new EntityNotFoundException(User.class, "userName", authentication.getName());
-        }
-        return optionalUser.get();
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new EntityNotFoundException(User.class, "userName", authentication.getName()));
+    }
+
+    public User findUserById(Long id) throws EntityNotFoundException {
+        return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(User.class, "id", String.valueOf(id)));
     }
 
 }

@@ -2,7 +2,7 @@ package am.task.services.user;
 
 import am.task.enums.UserRoleEnum;
 import am.task.enums.UserStatusEnum;
-import am.task.model.dto.UserCreatingDto;
+import am.task.model.dto.user.UserCreatingDto;
 import am.task.model.entity.User;
 import am.task.repositories.UserRepository;
 import am.task.services.AbstractService;
