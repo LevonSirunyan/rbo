@@ -2,10 +2,13 @@ package am.task.services.user;
 
 import am.task.enums.UserRoleEnum;
 import am.task.enums.UserStatusEnum;
+import am.task.exceptions.EntityNotFoundException;
+import am.task.exceptions.MessageException;
 import am.task.model.dto.user.UserCreatingDto;
 import am.task.model.entity.User;
 import am.task.repositories.UserRepository;
 import am.task.services.AbstractService;
+import am.task.services.utils.FindUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,12 +31,15 @@ public class UserServiceImpl extends AbstractService<User, UserRepository> imple
     private final UserRepository userRepository;
     @Lazy
     private final PasswordEncoder passwordEncoder;
+    @Lazy
+    private final FindUser findUser;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, FindUser findUser) {
         super(userRepository);
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.findUser = findUser;
     }
 
     @Override
@@ -74,6 +80,14 @@ public class UserServiceImpl extends AbstractService<User, UserRepository> imple
                 .role(UserRoleEnum.ROLE_USER)
                 .build();
         userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public boolean changeStatus(Long userId, int status) throws EntityNotFoundException, MessageException {
+        User user = findUser.findUserById(userId);
+        user.setUserStatusEnum(UserStatusEnum.valueOf(status).orElseThrow(() -> new MessageException("Incorrect status")));
+        userRepository.save(user);
+        return true;
     }
 
 }

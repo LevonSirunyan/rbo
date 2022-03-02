@@ -62,7 +62,7 @@ public class BookController extends BaseController {
     @ApiOperation(value = "API for user and admin to get book")
     @GetMapping("get")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseModel getBook(@RequestParam long bookId) {
+    public ResponseModel getBook(@RequestParam("bookId") long bookId) {
         try {
             return createResult(bookService.getBook(bookId), "Book is retrieved successfully.");
         } catch (Exception e) {
@@ -73,9 +73,32 @@ public class BookController extends BaseController {
     @ApiOperation(value = "API for admin to get book by id")
     @DeleteMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseModel deleteBook(@RequestParam long bookId) {
+    public ResponseModel deleteBook(@RequestParam("bookId") long bookId) {
         try {
             return createResult(bookService.deleteBook(bookId), "Book is deleted successfully.");
+        } catch (Exception e) {
+            return createErrorResult(e);
+        }
+    }
+
+    @ApiOperation(value = "API for user to get books")
+    @GetMapping("getAllBooks/{page}/{size}")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseModel getAllBooks(@PathVariable("page") int page, @PathVariable("size") int size) {
+        try {
+            return createResult(bookService.getAllBooks(page, size), "Books is retrieved successfully.");
+        } catch (Exception e) {
+            return createErrorResult(e);
+        }
+    }
+
+    @ApiOperation(value = "API for admin to get books")
+    @GetMapping("getAllBooksAdmin/{page}/{size}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseModel getAllBooks(@PathVariable("page") int page, @PathVariable("size") int size
+            , @RequestParam(value = "userId", required = false) Long userId) {
+        try {
+            return createResult(bookService.getAllBooksAdmin(page, size, userId), "Books is retrieved successfully.");
         } catch (Exception e) {
             return createErrorResult(e);
         }

@@ -44,7 +44,7 @@ public class SwaggerConfig {
         return new ApiInfoBuilder()
                 .title("REST API")
                 .description("\"REST API for RBO\"")
-                .version("0.1.2")
+                .version("0.1.3")
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0\"")
                 .contact(new Contact("Levon Sirunyan", "", "LevonSirunyan@gmail.com"))

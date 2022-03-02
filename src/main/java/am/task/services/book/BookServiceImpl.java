@@ -1,22 +1,23 @@
 package am.task.services.book;
 
 import am.task.enums.UserRoleEnum;
+import am.task.enums.UserStatusEnum;
 import am.task.exceptions.EntityNotFoundException;
 import am.task.exceptions.MessageException;
-import am.task.model.dto.book.AddBookDto;
-import am.task.model.dto.book.AdminAddBookDto;
-import am.task.model.dto.book.BookPreviewDto;
-import am.task.model.dto.book.EditBookDto;
+import am.task.model.dto.book.*;
 import am.task.model.entity.Book;
 import am.task.model.entity.User;
 import am.task.repositories.BookRepository;
 import am.task.services.utils.FindUser;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import static am.task.convert.BookConvert.bookPreviewDtoFromBook;
+import static am.task.convert.BookConvert.listBookListPreviewDtoFromBooks;
 
 @Service
 @Transactional
@@ -34,6 +35,9 @@ public class BookServiceImpl implements BookService {
     @Override
     public Long add(AddBookDto addBookDto) throws EntityNotFoundException, MessageException {
         User user = findUser.findUserByToken();
+        if (UserStatusEnum.BLOCK.equals(user.getUserStatusEnum())) {
+            throw new MessageException("User is blocked!!!");
+        }
         checkExist(user, addBookDto.getFoolName());
         return addBook(addBookDto.getFoolName(), user);
     }
@@ -49,8 +53,9 @@ public class BookServiceImpl implements BookService {
     public Long edit(EditBookDto editBookDto) throws EntityNotFoundException, MessageException {
         Book book = bookRepository.findById(editBookDto.getId())
                 .orElseThrow(() -> new EntityNotFoundException(Book.class, "id", String.valueOf(editBookDto.getId())));
-        checkExist(book.getUser(), editBookDto.getFoolName());
         checkUser(book.getUser());
+        checkExist(book.getUser(), editBookDto.getFoolName());
+        book.setFoolName(editBookDto.getFoolName());
         return book.getId();
     }
 
@@ -70,6 +75,27 @@ public class BookServiceImpl implements BookService {
         return true;
     }
 
+    @Override
+    public Page<BookListPreviewDto> getAllBooks(int page, int size) throws EntityNotFoundException {
+        User user = findUser.findUserByToken();
+        return getBooks(page, size, user);
+    }
+
+    @Override
+    public Page<BookListPreviewDto> getAllBooksAdmin(int page, int size, Long userId) throws EntityNotFoundException {
+        if (userId == null) {
+            Page<Book> books = bookRepository.findAll(PageRequest.of(page, size));
+            return listBookListPreviewDtoFromBooks(books);
+        } else {
+            return getBooks(page, size, findUser.findUserById(userId));
+        }
+    }
+
+    private Page<BookListPreviewDto> getBooks(int page, int size, User user) {
+        Page<Book> books = bookRepository.findAllByUser(user, PageRequest.of(page, size));
+        return listBookListPreviewDtoFromBooks(books);
+    }
+
     private void checkExist(User user, String foolName) throws MessageException {
         if (bookRepository.findAllByFoolNameAndUser(foolName, user).size() > 0) {
             throw new MessageException("This book is already exist!!!");
@@ -78,8 +104,13 @@ public class BookServiceImpl implements BookService {
 
     private void checkUser(User user) throws EntityNotFoundException, MessageException {
         User currentUser = findUser.findUserByToken();
-        if (UserRoleEnum.ROLE_USER.equals(currentUser.getRole()) && !currentUser.equals(user)) {
-            throw new MessageException("Current and book's user is different!!!");
+        if (UserRoleEnum.ROLE_USER.equals(currentUser.getRole())) {
+            if (UserStatusEnum.BLOCK.equals(user.getUserStatusEnum())) {
+                throw new MessageException("User is blocked!!!");
+            }
+            if (!currentUser.equals(user)) {
+                throw new MessageException("Current and book's user is different!!!");
+            }
         }
     }
 

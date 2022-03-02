@@ -1,5 +1,7 @@
 package am.task.services.user;
 
+import am.task.exceptions.EntityNotFoundException;
+import am.task.exceptions.MessageException;
 import am.task.model.dto.user.UserCreatingDto;
 import am.task.model.entity.User;
 import am.task.services.CommonService;
@@ -16,4 +18,6 @@ public interface UserService extends CommonService<User> {
     Optional<User> findById(Long id);
 
     void registration(UserCreatingDto userCreatingDto) throws IllegalArgumentException;
+
+    boolean changeStatus(Long userId, int status) throws EntityNotFoundException, MessageException;
 }
